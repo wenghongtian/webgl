@@ -21,11 +21,16 @@ function main() {
 
   const positionAttributeLocation = gl.getAttribLocation(program, "a_position");
 
+  const resolutionUniformLocation = gl.getUniformLocation(
+    program,
+    "u_resolution"
+  );
+
   const positionBuffer = gl.createBuffer();
 
   gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
 
-  const positions = [0, 0, 0, 0.5, 0.7, 0];
+  const positions = [10, 20, 80, 20, 10, 30, 10, 30, 80, 20, 80, 30];
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
 
   webglUtils.resizeCanvasToDisplaySize(gl.canvas as HTMLCanvasElement);
@@ -36,6 +41,8 @@ function main() {
   gl.clear(gl.COLOR_BUFFER_BIT);
 
   gl.useProgram(program);
+
+  gl.uniform2f(resolutionUniformLocation, gl.canvas.width, gl.canvas.height);
 
   gl.enableVertexAttribArray(positionAttributeLocation);
 
