@@ -1,6 +1,11 @@
 import "./style.css";
 import * as webglUtils from "./webglUtils";
 
+const translation = [0, 0];
+const width = 100;
+const height = 30;
+const color = [Math.random(), Math.random(), Math.random(), 1];
+
 function main() {
   const canvas = document.querySelector(`#canvas`) as HTMLCanvasElement;
   const gl = canvas.getContext("webgl")!;
@@ -26,50 +31,67 @@ function main() {
     "u_resolution"
   );
 
+  const colorUniformLocation = gl.getUniformLocation(program, "u_color");
+
   const positionBuffer = gl.createBuffer();
 
-  gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+  drawScene();
 
-  const positions = [10, 20, 80, 20, 10, 30, 10, 30, 80, 20, 80, 30];
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+  function drawScene() {
+    webglUtils.resizeCanvasToDisplaySize(gl.canvas as HTMLCanvasElement);
 
-  webglUtils.resizeCanvasToDisplaySize(gl.canvas as HTMLCanvasElement);
+    // 告诉WebGL如何从裁剪空间对应到像素
+    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 
-  gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+    // 清空画布
+    gl.clear(gl.COLOR_BUFFER_BIT);
 
-  gl.clearColor(0, 0, 0, 0);
-  gl.clear(gl.COLOR_BUFFER_BIT);
+    // 使用我们的程序
+    gl.useProgram(program);
 
-  gl.useProgram(program);
+    // 启用属性
+    gl.enableVertexAttribArray(positionAttributeLocation);
 
-  gl.uniform2f(resolutionUniformLocation, gl.canvas.width, gl.canvas.height);
+    // 绑定位置缓冲
+    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
 
-  gl.enableVertexAttribArray(positionAttributeLocation);
+    setRectangle(gl, translation[0], translation[1], width, height);
 
-  gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-  {
-    const size = 2;
-    const type = gl.FLOAT;
-    const normalize = false;
-    const stride = 0;
-    const offset = 0;
+    // 告诉属性怎么从positionBuffer中读取数据 (ARRAY_BUFFER)
+    gl.vertexAttribPointer(positionAttributeLocation, 2, gl.FLOAT, false, 0, 0);
 
-    gl.vertexAttribPointer(
-      positionAttributeLocation,
-      size,
-      type,
-      normalize,
-      stride,
-      offset
-    );
+    // 设置分辨率
+    gl.uniform2f(resolutionUniformLocation, gl.canvas.width, gl.canvas.height);
+
+    // 设置颜色
+    gl.uniform4fv(colorUniformLocation, color);
+
+    // 绘制矩形
+    gl.drawArrays(gl.TRIANGLES, 0, 6);
   }
+}
 
-  {
-    const primitiveType = gl.TRIANGLES;
-    const offset = 0;
-    const count = 3;
-    gl.drawArrays(primitiveType, offset, count);
-  }
+function randomInt(range: number) {
+  return Math.floor(Math.random() * range);
+}
+
+function setRectangle(
+  gl: WebGLRenderingContext,
+  x: number,
+  y: number,
+  width: number,
+  height: number
+) {
+  const x1 = x;
+  const x2 = x + width;
+  const y1 = y;
+  const y2 = y + height;
+
+  gl.bufferData(
+    gl.ARRAY_BUFFER,
+    new Float32Array([x1, y1, x2, y1, x1, y2, x1, y2, x2, y1, x2, y2]),
+    gl.STATIC_DRAW
+  );
 }
 
 function createShader(gl: WebGLRenderingContext, type: number, source: string) {
