@@ -1,5 +1,10 @@
 lockfileVersion: '6.0'
 
+dependencies:
+  webgl-utils:
+    specifier: ^1.0.1
+    version: registry.npmmirror.com/webgl-utils@1.0.1
+
 devDependencies:
   typescript:
     specifier: ^4.9.4
@@ -425,3 +430,9 @@ packages:
     optionalDependencies:
       fsevents: registry.npmmirror.com/fsevents@2.3.2
     dev: true
+
+  registry.npmmirror.com/webgl-utils@1.0.1:
+    resolution: {integrity: sha512-ox5xQ3YkrrOR6pCZHTOud49zzMXP9LnXzx7jIQvHOinV4FK59rGGJURw2Lq1cCTPgMVU2wAWq7e6vEVjz9FdBw==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/webgl-utils/-/webgl-utils-1.0.1.tgz}
+    name: webgl-utils
+    version: 1.0.1
+    dev: false
