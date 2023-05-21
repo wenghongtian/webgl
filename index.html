@@ -13,48 +13,28 @@
       <div id="ui">
         <div id="x"></div>
         <div id="y"></div>
-        <div id="angle"></div>
+        <div id="z"></div>
+        <div id="angleX"></div>
+        <div id="angleY"></div>
+        <div id="angleZ"></div>
         <div id="scaleX"></div>
         <div id="scaleY"></div>
-        <div id="rotation"></div>
+        <div id="scaleZ"></div>
       </div>
     </div>
     <script type="module" src="/src/main.ts"></script>
 
     <script id="vertex-shader-2d" type="x-shader/x-vertex">
+      attribute vec4 a_position;
+      attribute vec4 a_color;
 
-      // 一个属性变量，将会从缓冲中获取数据
-      attribute vec2 a_position;
+      uniform mat4 u_matrix;
+      varying vec4 v_color;
 
-      uniform vec2 u_resolution;
-      uniform vec2 u_translation;
-      uniform vec2 u_rotation;
-      uniform vec2 u_scale;
-
-      // 所有着色器都有一个main方法
       void main() {
-        // 缩放
-        vec2 scaledPosition = a_position * u_scale;
-
-        // 旋转位置
-        vec2 rotatedPosition = vec2(
-          scaledPosition.x * u_rotation.y + scaledPosition.y * u_rotation.x,
-          scaledPosition.y * u_rotation.y - scaledPosition.x * u_rotation.x);
-
-        // 加上平移量
-        vec2 position = rotatedPosition + u_translation;
-
-        // 从像素坐标转换到 0.0 到 1.0
-        vec2 zeroToOne = position.xy / u_resolution;
-
-        // 再把 0->1 转换 0->2
-        vec2 zeroToTwo = zeroToOne * 2.0;
-
-        // convert from 0->2 to -1->+1 (clipspace)
-        vec2 clipSpace = zeroToTwo - 1.0;
-
-        // gl_Position 是一个顶点着色器主要设置的变量
-        gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
+        // 使位置和矩阵相乘
+        gl_Position = u_matrix * a_position;
+        v_color = a_color;
       }
     </script>
     <!-- fragment shader -->
@@ -62,12 +42,10 @@
       // 片段着色器没有默认精度，所以我们需要设置一个精度
         // mediump是一个不错的默认值，代表“medium precision”（中等精度）
         precision mediump float;
-
-        uniform vec4 u_color;
-
+        varying vec4 v_color;
         void main() {
           // gl_FragColor是一个片段着色器主要设置的变量
-          gl_FragColor = u_color; // 返回“瑞迪施紫色”
+          gl_FragColor = v_color; // 返回“瑞迪施紫色”
         }
     </script>
     <script src="https://webglfundamentals.org/webgl/resources/jquery-1.7.1.min.js"></script>
