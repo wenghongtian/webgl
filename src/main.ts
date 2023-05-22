@@ -113,6 +113,35 @@ const m4 = {
   scale(m: number[], sx: number, sy: number, sz: number) {
     return m4.multiply(m, m4.scaling(sx, sy, sz));
   },
+
+  orthographic(
+    left: number,
+    right: number,
+    bottom: number,
+    top: number,
+    near: number,
+    far: number
+  ) {
+    return [
+      2 / (right - left),
+      0,
+      0,
+      0,
+      0,
+      2 / (top - bottom),
+      0,
+      0,
+      0,
+      0,
+      2 / (near - far),
+      0,
+
+      (left + right) / (left - right),
+      (bottom + top) / (bottom - top),
+      (near + far) / (near - far),
+      1,
+    ];
+  },
 };
 
 function main() {
@@ -128,10 +157,12 @@ function main() {
   const positionLocation = gl.getAttribLocation(program, "a_position");
   const colorLocation = gl.getAttribLocation(program, "a_color");
   const matrixLocation = gl.getUniformLocation(program, "u_matrix");
+  const fudgeLocation = gl.getUniformLocation(program, "u_fudgeFactor");
 
   const translation = [0, 0, 0];
   const rotation = [0, 0, 0];
   const scale = [1, 1, 1];
+  let fudgeFactor = 0;
 
   const positionBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
@@ -143,6 +174,12 @@ function main() {
 
   drawScene();
 
+  window.webglLessonsUI.setupSlider("#fudgeFactor", {
+    slide: updateFudge,
+    max: 2,
+    step: 0.001,
+    precision: 3,
+  });
   window.webglLessonsUI.setupSlider("#x", {
     slide: updatePosition(0),
     max: gl.canvas.width,
@@ -192,6 +229,11 @@ function main() {
     precision: 2,
   });
 
+  function updateFudge(event: any, ui: { value: number }) {
+    fudgeFactor = ui.value;
+    drawScene();
+  }
+
   function updateScale(index: number) {
     return (evt: any, ui: { value: number }) => {
       scale[index] = ui.value;
@@ -218,6 +260,8 @@ function main() {
     gl.enable(gl.DEPTH_TEST);
     window.webglUtils.resizeCanvasToDisplaySize(gl.canvas as HTMLCanvasElement);
 
+    gl.uniform1f(fudgeLocation, fudgeFactor);
+
     // 告诉WebGL如何从裁剪空间对应到像素
     gl.viewport(
       0,
@@ -241,10 +285,13 @@ function main() {
     gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
     gl.vertexAttribPointer(colorLocation, 3, gl.UNSIGNED_BYTE, true, 0, 0);
 
-    let matrix = m4.projection(
+    let matrix = m4.orthographic(
+      0,
       (gl.canvas as HTMLCanvasElement).clientWidth,
       (gl.canvas as HTMLCanvasElement).clientHeight,
-      400
+      0,
+      400,
+      -400
     );
     matrix = m4.translate(
       matrix,
